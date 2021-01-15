@@ -1,17 +1,21 @@
 import sys
 import sqlite3
-from PyQt5 import uic
 from PyQt5.QtWidgets import QMainWindow, QApplication, QTableWidgetItem, \
-    QHeaderView, QMessageBox, QDialog
+    QHeaderView, QMessageBox, QDialog, QFileDialog
+from mainUI import Ui_MainWindow
+from addEditCoffeeForm import Ui_Dialog
 
 HEADERS = ["ID", "Title", "Roast", "Ground", "Taste", "Price, rub.", "Volume, g"]
 
 
-class MainWindow(QMainWindow):
+class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self):
         super().__init__()
-        uic.loadUi('main.ui', self)
-        self.connection = sqlite3.connect("coffee.sqlite")
+        self.setupUi(self)
+        database = QFileDialog.getOpenFileName(
+            self, 'Select coffee database', '',
+            'Database (*.sqlite);;All files(*)')[0]
+        self.connection = sqlite3.connect(database)
         self.edit_window = EditWindow(self.connection)
         self.add_window = AddWindow(self.connection)
         self.tableWidget.setColumnCount(len(HEADERS))
@@ -76,11 +80,11 @@ class MainWindow(QMainWindow):
                     self.tableWidget.setItem(i, j, QTableWidgetItem(str(elem)))
 
 
-class RecordWindow(QDialog):
+class RecordWindow(QDialog, Ui_Dialog):
     def __init__(self, connection):
         super(RecordWindow, self).__init__()
         self.connection = connection
-        uic.loadUi('addEditCoffeeForm.ui', self)
+        self.setupUi(self)
         cursor = self.connection.cursor()
         roasts = cursor.execute("SELECT * FROM roasts").fetchall()
         self.roasts = {x[1]: x[0] for x in roasts}
